@@ -32,6 +32,9 @@
     .card-body {
       padding: 1.2rem 0.7rem;
     }
+    .container-xl {
+      padding: 10px;
+    }
     @media (max-width: 767.98px) {
       .container-xl {
         padding-left: 0.2rem;
@@ -90,11 +93,14 @@
                 <div>
                   <span id="timerDisplay" class="font-monospace" style="font-size:3.5rem;font-weight:700;"></span>
                 </div>
-                <div class="mt-3">
-                  <span id="timerStartedAt" class="font-monospace text-muted" style="font-size:1.1rem;"></span>
-                </div>
-                <div class="mt-1">
-                  <span id="timerEndedAt" class="font-monospace text-danger" style="font-size:1.1rem;"></span>
+                <div class="w-100 mt-4">
+                  <div class="progress" style="height: 18px;">
+                    <div id="timerProgress" class="progress-bar bg-primary" role="progressbar" style="width: 0%; transition: width 0.2s;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <div class="d-flex justify-content-between mt-1">
+                    <small id="progressStart" class="text-muted"></small>
+                    <small id="progressEnd" class="text-muted"></small>
+                  </div>
                 </div>
               </div>
             </div>
@@ -120,8 +126,7 @@
                   <form id="customTimerForm" class="d-flex gap-2 align-items-end">
                     <input id="customTimerInput" type="text" class="form-control form-control-sm" placeholder="HH:MM:SS:sss" style="max-width: 140px;" autocomplete="off" />
                     <button type="submit" class="btn btn-sm btn-primary">Start</button>
-                  </form>
-                  <div class="form-text">Format: HH:MM:SS:sss (e.g. 01:05:30:000)</div>
+                  </form> 
                 </div>
                 <div class="mb-2">
                   <label class="form-label">Theme</label>
@@ -137,7 +142,6 @@
       </div>
     </div>
   </div>
-  <audio id="timerSound" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa1c7b.mp3" preload="auto"></audio>
   <script>
     // Live clock
     function pad(num, size = 2) {
@@ -163,6 +167,10 @@
     const timerDisplay = document.getElementById('timerDisplay');
     let timerInterval = null;
     let timerEnd = null;
+    let timerDuration = 0;
+    const timerProgress = document.getElementById('timerProgress');
+    const progressStart = document.getElementById('progressStart');
+    const progressEnd = document.getElementById('progressEnd');
     function formatTimer(ms) {
       if (ms < 0) ms = 0;
       const date = new Date(ms);
@@ -185,42 +193,35 @@
       if ([h, m, s, ms].some(isNaN)) return null;
       return h * 3600000 + m * 60000 + s * 1000 + ms;
     }
-    const timerStartedAt = document.getElementById('timerStartedAt');
-    const timerEndedAt = document.getElementById('timerEndedAt');
-    function showTimerStartedAt() {
-      const now = new Date();
-      timerStartedAt.textContent = 'Started at: ' + formatTime(now);
-    }
-    function showTimerEndedAt() {
-      const now = new Date();
-      timerEndedAt.textContent = 'Ended at: ' + formatTime(now);
-    }
-    function clearTimerEndedAt() {
-      timerEndedAt.textContent = '';
-    }
     function startTimer(durationMs) {
       if (timerInterval) clearInterval(timerInterval);
       timerEnd = Date.now() + durationMs;
-      showTimerStartedAt();
-      clearTimerEndedAt();
+      timerDuration = durationMs;
+      // Set progress bar start/end labels
+      const startDate = new Date();
+      const endDate = new Date(Date.now() + durationMs);
+      progressStart.textContent = formatTime(startDate);
+      progressEnd.textContent = formatTime(endDate);
+      updateProgressBar(0);
       function tick() {
-        const remaining = timerEnd - Date.now();
+        const now = Date.now();
+        const remaining = timerEnd - now;
         timerDisplay.textContent = formatTimer(remaining);
+        let percent = 100 * (1 - Math.max(0, remaining) / timerDuration);
+        updateProgressBar(percent);
         if (remaining <= 0) {
           timerDisplay.textContent = "00:00:00:000";
           clearInterval(timerInterval);
           timerInterval = null;
-          showTimerEndedAt();
-          // Play notification sound
-          const sound = document.getElementById('timerSound');
-          if (sound) {
-            sound.currentTime = 0;
-            sound.play();
-          }
+          updateProgressBar(100);
         }
       }
       tick();
       timerInterval = setInterval(tick, 33);
+    }
+    function updateProgressBar(percent) {
+      timerProgress.style.width = percent + '%';
+      timerProgress.setAttribute('aria-valuenow', percent);
     }
     // Attach to timer buttons
     const timerButtons = document.querySelectorAll('.quick-timers .btn-outline-primary');
