@@ -6,16 +6,17 @@
   <title>Focus Timer</title>
   <!-- Tabler CSS from CDN -->
   <link href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <style>
     html, body {
       height: 100%;
       min-height: 100vh;
       background: var(--tblr-bg-surface);
-      font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+      font-family: 'Exo 2', 'Inter', 'Segoe UI', Arial, sans-serif !important;
       -webkit-tap-highlight-color: transparent;
     }
     .font-monospace, .card, .btn {
-      font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+      font-family: 'Exo 2', 'Inter', 'Segoe UI', Arial, sans-serif !important;
     }
     .quick-timers .btn {
       font-size: 1rem;
@@ -79,7 +80,46 @@
   </style>
 </head>
 <body>
-  <div class="page" style="min-height:100vh;">
+    <!-- Navbar -->
+    <header>
+      <nav id="mainNavbar" class="navbar navbar-expand-lg shadow-sm mb-3" style="padding: 0.7rem 1.2rem; transition: background 0.2s, color 0.2s;">
+        <div class="container-xl d-flex align-items-center gap-2">
+          <span class="navbar-brand d-flex align-items-center gap-2 mb-0 h1" style="font-size:1.5rem;font-weight:700;">
+            <span style="display:inline-flex;align-items:center;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-stopwatch"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a7 7 0 1 0 14 0a7 7 0 0 0 -14 0" /><path d="M14.5 10.5l-2.5 2.5" /><path d="M17 8l1 -1" /><path d="M14 3h-4" /></svg>
+            </span>
+            Focus Timer
+          </span>
+        </div>
+      </nav>
+    </header>
+    <script>
+      function setNavbarTheme() {
+        const html = document.documentElement;
+        const isDark = html.getAttribute('data-bs-theme') === 'dark';
+        // Use Tabler's default dark background for all cards and navbar
+        const darkBg = getComputedStyle(document.body).getPropertyValue('--tblr-bg-surface') || '#23272f';
+        var navbar = document.getElementById('mainNavbar');
+        if (navbar) {
+          navbar.style.background = isDark ? darkBg : '#fff';
+          navbar.style.color = isDark ? '#f8fafc' : '#222';
+        }
+        document.documentElement.style.setProperty('--navbar-bg', isDark ? darkBg : '#fff');
+        document.documentElement.style.setProperty('--navbar-text', isDark ? '#f8fafc' : '#222');
+        document.documentElement.style.setProperty('--right-card-bg', isDark ? darkBg : '#f8fafc');
+        document.documentElement.style.setProperty('--right-card-text', isDark ? '#f8fafc' : '#23272f');
+      }
+      setNavbarTheme();
+      if (typeof setThemeIcons === 'function') {
+        const prevSetThemeIcons = setThemeIcons;
+        setThemeIcons = function() {
+          prevSetThemeIcons();
+          setNavbarTheme();
+        }
+      }
+    </script>
+    <!-- End Navbar -->
+    <div class="page" style="min-height:100vh;">
     <div class="page-main">
       <div class="container-xl">
         <div class="row mt-5">
@@ -107,10 +147,13 @@
           </div>
           <!-- Right Card: 4 columns -->
           <div class="col-12 col-md-4 mt-4 mt-md-0">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm" style="background: var(--right-card-bg, #f8fafc); color: var(--right-card-text, #222);">
               <div class="card-body">
                 <div class="mb-3">
-                  <label class="form-label">Quick Timers</label>
+                  <label class="form-label d-flex align-items-center gap-2">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+                    Quick Timers
+                  </label>
                   <div class="quick-timers">
                     <button class="btn btn-outline-primary">10s</button>
                     <button class="btn btn-outline-primary">1m</button>
@@ -122,16 +165,28 @@
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Custom Timer</label>
+                  <label class="form-label d-flex align-items-center gap-2">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-edit" viewBox="0 0 24 24"><path d="M16 3l5 5l-13 13H3v-5L16 3z"/><path d="M16 3l5 5"/></svg>
+                    Custom Timer
+                  </label>
                   <form id="customTimerForm" class="d-flex gap-2 align-items-end">
                     <input id="customTimerInput" type="text" class="form-control form-control-sm" placeholder="HH:MM:SS:sss" style="max-width: 140px;" autocomplete="off" />
-                    <button type="submit" class="btn btn-sm btn-primary">Start</button>
-                  </form> 
+                    <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start</button>
+                  </form>
+                  <div class="form-text">Format: HH:MM:SS:sss (e.g. 01:05:30:000)</div>
                 </div>
                 <div class="mb-2">
-                  <label class="form-label">Theme</label>
+                  <label class="form-label d-flex align-items-center gap-2">
+                    <span id="themeIcon" style="display:inline-flex;align-items:center;">
+                      <svg id="iconDay" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M3 12h1m16 0h1M12 3v1m0 16v1M5.6 5.6l.7.7m10.6 10.6l.7.7M18.4 5.6l-.7.7M5.6 18.4l.7-.7"/></svg>
+                      <svg id="iconNight" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-moon" viewBox="0 0 24 24" style="display:none;"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/></svg>
+                    </span>
+                    Theme
+                  </label>
                   <div>
-                    <button id="themeToggle" class="btn btn-sm btn-secondary">Toggle Dark/Light</button>
+                    <button id="themeToggle" class="btn btn-sm btn-secondary d-flex align-items-center gap-1">
+                      <span id="themeToggleText">Toggle Dark/Light</span>
+                    </button>
                   </div>
                 </div>
                 <!-- More configuration can go here -->
@@ -259,11 +314,36 @@
     });
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
+    const iconDay = document.getElementById('iconDay');
+    const iconNight = document.getElementById('iconNight');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeToggleText = document.getElementById('themeToggleText');
+
+    function setThemeIcons() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-bs-theme') === 'dark';
+      if (isDark) {
+        iconDay.style.display = 'none';
+        iconNight.style.display = 'inline';
+        document.documentElement.style.setProperty('--right-card-bg', '#23272f');
+        document.documentElement.style.setProperty('--right-card-text', '#f8fafc');
+        themeToggleText.textContent = 'Night Mode';
+      } else {
+        iconDay.style.display = 'inline';
+        iconNight.style.display = 'none';
+        document.documentElement.style.setProperty('--right-card-bg', '#f8fafc');
+        document.documentElement.style.setProperty('--right-card-text', '#23272f');
+        themeToggleText.textContent = 'Day Mode';
+      }
+    }
     themeToggle.addEventListener('click', () => {
       const html = document.documentElement;
       const isDark = html.getAttribute('data-bs-theme') === 'dark';
       html.setAttribute('data-bs-theme', isDark ? 'light' : 'dark');
+      setThemeIcons();
+      setNavbarTheme(); // Ensure navbar updates immediately
     });
+    setThemeIcons();
   </script>
 </body>
 </html>
