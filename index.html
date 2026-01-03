@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Focus Timer</title>
+  <!-- Tabler CSS from CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css" rel="stylesheet" />
+  <style>
+    html, body {
+      height: 100%;
+      min-height: 100vh;
+      background: var(--tblr-bg-surface);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-monospace, .card, .btn {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+    }
+    .quick-timers .btn {
+      font-size: 1rem;
+      padding: 0.4rem 1rem;
+      margin: 0.15rem;
+      min-width: 60px;
+    }
+    .quick-timers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: flex-start;
+    }
+    .card-body {
+      padding: 1.2rem 0.7rem;
+    }
+    @media (max-width: 767.98px) {
+      .container-xl {
+        padding-left: 0.2rem;
+        padding-right: 0.2rem;
+      }
+      .row.mt-5 {
+        margin-top: 1.2rem !important;
+      }
+      .card-body {
+        padding: 1rem 0.3rem;
+      }
+      .col-12.col-md-8, .col-12.col-md-4 {
+        max-width: 100%;
+        flex: 0 0 100%;
+      }
+      .card {
+        margin-bottom: 1.2rem;
+      }
+      #currentTime {
+        font-size: 2rem !important;
+      }
+      #timerDisplay {
+        font-size: 2.7rem !important;
+      }
+    }
+    @media (max-width: 400px) {
+      #currentTime {
+        font-size: 1.2rem !important;
+      }
+      #timerDisplay {
+        font-size: 1.7rem !important;
+      }
+      .quick-timers .btn {
+        font-size: 0.85rem;
+        min-width: 44px;
+        padding: 0.3rem 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page" style="min-height:100vh;">
+    <div class="page-main">
+      <div class="container-xl">
+        <div class="row mt-5">
+          <!-- Left Card: 8 columns -->
+          <div class="col-12 col-md-8">
+            <div class="card h-100">
+              <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 300px;">
+                <div class="mb-2">
+                  <span id="currentTime" class="font-monospace" style="font-size:2.5rem;font-weight:600;"></span>
+                </div>
+                <div>
+                  <span id="timerDisplay" class="font-monospace" style="font-size:3.5rem;font-weight:700;"></span>
+                </div>
+                <div class="mt-3">
+                  <span id="timerStartedAt" class="font-monospace text-muted" style="font-size:1.1rem;"></span>
+                </div>
+                <div class="mt-1">
+                  <span id="timerEndedAt" class="font-monospace text-danger" style="font-size:1.1rem;"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Right Card: 4 columns -->
+          <div class="col-12 col-md-4 mt-4 mt-md-0">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label">Quick Timers</label>
+                  <div class="quick-timers">
+                    <button class="btn btn-outline-primary">10s</button>
+                    <button class="btn btn-outline-primary">1m</button>
+                    <button class="btn btn-outline-primary">5m</button>
+                    <button class="btn btn-outline-primary">10m</button>
+                    <button class="btn btn-outline-primary">15m</button>
+                    <button class="btn btn-outline-primary">30m</button>
+                    <button class="btn btn-outline-primary">1h</button>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Custom Timer</label>
+                  <form id="customTimerForm" class="d-flex gap-2 align-items-end">
+                    <input id="customTimerInput" type="text" class="form-control form-control-sm" placeholder="HH:MM:SS:sss" style="max-width: 140px;" autocomplete="off" />
+                    <button type="submit" class="btn btn-sm btn-primary">Start</button>
+                  </form>
+                  <div class="form-text">Format: HH:MM:SS:sss (e.g. 01:05:30:000)</div>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Theme</label>
+                  <div>
+                    <button id="themeToggle" class="btn btn-sm btn-secondary">Toggle Dark/Light</button>
+                  </div>
+                </div>
+                <!-- More configuration can go here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Live clock
+    function pad(num, size = 2) {
+      let s = "000" + num;
+      return s.substr(s.length - size);
+    }
+    function formatTime(date) {
+      return (
+        pad(date.getHours()) +
+        ":" + pad(date.getMinutes()) +
+        ":" + pad(date.getSeconds()) +
+        ":" + pad(date.getMilliseconds(), 3)
+      );
+    }
+    const currentTimeEl = document.getElementById('currentTime');
+    function updateClock() {
+      const now = new Date();
+      currentTimeEl.textContent = formatTime(now);
+      requestAnimationFrame(updateClock);
+    }
+    updateClock();
+    // Timer logic
+    const timerDisplay = document.getElementById('timerDisplay');
+    let timerInterval = null;
+    let timerEnd = null;
+    function formatTimer(ms) {
+      if (ms < 0) ms = 0;
+      const date = new Date(ms);
+      // Use UTC to avoid timezone offset
+      return (
+        pad(Math.floor(ms / 3600000)) +
+        ":" + pad(date.getUTCMinutes()) +
+        ":" + pad(date.getUTCSeconds()) +
+        ":" + pad(date.getUTCMilliseconds(), 3)
+      );
+    }
+    function parseCustomTime(str) {
+      // Accepts HH:MM:SS:sss, all optional, missing parts = 0
+      const parts = str.split(":").map(x => x.trim());
+      let [h, m, s, ms] = [0, 0, 0, 0];
+      if (parts.length > 0) h = parseInt(parts[0] || 0);
+      if (parts.length > 1) m = parseInt(parts[1] || 0);
+      if (parts.length > 2) s = parseInt(parts[2] || 0);
+      if (parts.length > 3) ms = parseInt(parts[3] || 0);
+      if ([h, m, s, ms].some(isNaN)) return null;
+      return h * 3600000 + m * 60000 + s * 1000 + ms;
+    }
+    const timerStartedAt = document.getElementById('timerStartedAt');
+    const timerEndedAt = document.getElementById('timerEndedAt');
+    function showTimerStartedAt() {
+      const now = new Date();
+      timerStartedAt.textContent = 'Started at: ' + formatTime(now);
+    }
+    function showTimerEndedAt() {
+      const now = new Date();
+      timerEndedAt.textContent = 'Ended at: ' + formatTime(now);
+    }
+    function clearTimerEndedAt() {
+      timerEndedAt.textContent = '';
+    }
+    function startTimer(durationMs) {
+      if (timerInterval) clearInterval(timerInterval);
+      timerEnd = Date.now() + durationMs;
+      showTimerStartedAt();
+      clearTimerEndedAt();
+      function tick() {
+        const remaining = timerEnd - Date.now();
+        timerDisplay.textContent = formatTimer(remaining);
+        if (remaining <= 0) {
+          timerDisplay.textContent = "00:00:00:000";
+          clearInterval(timerInterval);
+          timerInterval = null;
+          showTimerEndedAt();
+        }
+      }
+      tick();
+      timerInterval = setInterval(tick, 33);
+    }
+    // Attach to timer buttons
+    const timerButtons = document.querySelectorAll('.quick-timers .btn-outline-primary');
+    const timeMap = {
+      '10s': 10 * 1000,
+      '1m': 60 * 1000,
+      '5m': 5 * 60 * 1000,
+      '10m': 10 * 60 * 1000,
+      '15m': 15 * 60 * 1000,
+      '30m': 30 * 60 * 1000,
+      '1h': 60 * 60 * 1000
+    };
+    timerButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const label = btn.textContent.trim();
+        if (timeMap[label]) {
+          startTimer(timeMap[label]);
+        }
+      });
+    });
+    // Custom timer form
+    const customTimerForm = document.getElementById('customTimerForm');
+    const customTimerInput = document.getElementById('customTimerInput');
+    customTimerForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const val = customTimerInput.value.trim();
+      const ms = parseCustomTime(val);
+      if (ms && ms > 0) {
+        startTimer(ms);
+        customTimerInput.value = '';
+      } else {
+        customTimerInput.classList.add('is-invalid');
+        setTimeout(() => customTimerInput.classList.remove('is-invalid'), 1200);
+      }
+    });
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-bs-theme') === 'dark';
+      html.setAttribute('data-bs-theme', isDark ? 'light' : 'dark');
+    });
+  </script>
+</body>
+</html>
