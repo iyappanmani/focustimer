@@ -43,6 +43,9 @@
       .card-body {
         padding: 1rem 0.3rem;
       }
+      /* Only stack cards vertically for screens below 576px */
+    }
+    @media (max-width: 575.98px) {
       .col-12.col-md-8, .col-12.col-md-4 {
         max-width: 100%;
         flex: 0 0 100%;
@@ -134,6 +137,7 @@
       </div>
     </div>
   </div>
+  <audio id="timerSound" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa1c7b.mp3" preload="auto"></audio>
   <script>
     // Live clock
     function pad(num, size = 2) {
@@ -207,6 +211,12 @@
           clearInterval(timerInterval);
           timerInterval = null;
           showTimerEndedAt();
+          // Play notification sound
+          const sound = document.getElementById('timerSound');
+          if (sound) {
+            sound.currentTime = 0;
+            sound.play();
+          }
         }
       }
       tick();
